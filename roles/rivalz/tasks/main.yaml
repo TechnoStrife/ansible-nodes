@@ -1,0 +1,21 @@
+---
+- name: Install rivalz cli
+  ansible.builtin.include_tasks: install.yaml
+
+- name: Update systemd service config
+  ansible.builtin.template:
+    src: rivalz.service.j2
+    dest: /etc/systemd/system/rivalz.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd to recognize the service
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start Rivalz service
+  ansible.builtin.systemd:
+    name: rivalz
+    enabled: true
+    state: stopped

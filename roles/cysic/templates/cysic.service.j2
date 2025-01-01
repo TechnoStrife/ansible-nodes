@@ -1,0 +1,13 @@
+[Unit]
+Description=Cysic node
+After=network.target nss-lookup.target
+
+[Service]
+WorkingDirectory=/root/cysic-verifier/
+ExecStart=bash start.sh
+Environment="HOME=/root/"
+Restart=on-failure
+LimitNPROC=10000
+
+[Install]
+WantedBy=multi-user.target

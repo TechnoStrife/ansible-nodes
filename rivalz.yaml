@@ -1,0 +1,10 @@
+---
+- name: Set up node
+  hosts: nodes
+  roles:
+    - nodejs
+
+- name: Set up rivalz
+  hosts: nodes
+  roles:
+    - rivalz

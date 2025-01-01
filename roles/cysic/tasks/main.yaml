@@ -1,0 +1,56 @@
+---
+
+- name: Update and upgrade apt packages
+  become: true
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
+
+- name: Install Cysic
+  ansible.builtin.include_tasks: install.yaml
+
+- name: Check local key
+  local_action:
+    module: stat
+    path: "./cysic-keys/{{ cysic_wallet }}.key"
+  register: local_key
+
+- name: Copy local key
+  copy:
+    src: "./cysic-keys/{{ cysic_wallet }}.key"
+    dest: "/root/.cysic/keys/{{ cysic_wallet }}.key"
+  when: local_key.stat.exists
+
+
+- name: Update systemd service config
+  ansible.builtin.template:
+    src: cysic.service.j2
+    dest: /etc/systemd/system/cysic.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd to recognize the service
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start Cysic service
+  ansible.builtin.systemd:
+    name: cysic
+    enabled: true
+    state: restarted
+
+
+- name: Wait for key file
+  ansible.builtin.wait_for:
+    path: "/root/.cysic/keys/{{ cysic_wallet }}.key"
+    timeout: 60
+    msg: "Key file (/root/.cysic/keys/{{ cysic_wallet }}.key) was not created in 60 seconds, check: systemctl status cysic.service"
+
+- name: Backup key
+  ansible.builtin.fetch:
+    src: "/root/.cysic/keys/{{ cysic_wallet }}.key"
+    flat: true
+    dest: "./cysic-keys/"

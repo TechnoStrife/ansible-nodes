@@ -1,0 +1,13 @@
+[Unit]
+Description=Rivalz node
+After=network.target nss-lookup.target
+
+[Service]
+WorkingDirectory=/root/
+ExecStart=bash -c ". /root/.nvm/nvm.sh && rivalz run"
+Environment="HOME=/root/"
+Restart=on-failure
+LimitNPROC=10000
+
+[Install]
+WantedBy=multi-user.target

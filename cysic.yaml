@@ -1,0 +1,5 @@
+---
+- name: Set up Cysic
+  hosts: nodes
+  roles:
+    - cysic

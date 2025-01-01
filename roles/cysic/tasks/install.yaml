@@ -1,0 +1,30 @@
+
+- name: check installation
+  stat:
+    path: ~/cysic-verifier/.installed
+  register: cysic_check_installed
+
+- name: install cysic
+  when: not cysic_check_installed.stat.exists
+  block:
+    - name: make cysic directory
+      ansible.builtin.file:
+        path: ~/cysic-verifier/
+        state: directory
+        mode: '0644'
+
+    - name: get install script
+      ansible.builtin.get_url:
+        dest: ~/cysic_verifier_setup_linux.sh
+        url: https://github.com/cysic-labs/phase2_libs/releases/download/v1.0.0/setup_linux.sh
+        mode: '0644'
+
+    - name: run install script
+      command: bash ~/cysic_verifier_setup_linux.sh "{{ wallet }}"
+
+    - name: store installed flag
+      copy:
+        content: ""
+        dest: ~/cysic-verifier/.installed
+        mode: '0644'
+
