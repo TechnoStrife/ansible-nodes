@@ -20,7 +20,7 @@ nodes:
 
 ### Get collections
 ```
-ansible-galaxy install -f -r roles/requirements.yml
+ansible-galaxy install -f -r roles/requirements.yaml
 ```
 
 ### Setup
