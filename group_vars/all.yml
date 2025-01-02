@@ -1,0 +1,2 @@
+---
+prometheus_hostnamelookupkey: "ansible_host"

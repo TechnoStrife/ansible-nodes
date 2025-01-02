@@ -1,0 +1,22 @@
+---
+- name: Set up Prometheus node exporter
+  hosts: nodes
+  roles:
+    # https://prometheus-community.github.io/ansible/branch/main/node_exporter_role.html
+    - prometheus.prometheus.node_exporter
+  tags:
+    - exporters
+
+- name: Add node textfile examples
+  hosts: nodes
+  become: true
+  tasks:
+    - name: Node CPU threshold
+      ansible.builtin.template:
+        src: node_metrics.prom.j2
+        dest: "{{ node_exporter_textfile_dir }}/node_metrics.prom"
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - node_exporter

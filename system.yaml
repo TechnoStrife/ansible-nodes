@@ -1,0 +1,32 @@
+---
+# - name: Apply security restrictions
+#   hosts: all
+#   become: true
+#   roles:
+#     # - devsec.hardening.os_hardening
+#     - devsec.hardening.ssh_hardening
+
+- name: Configure systemd
+  hosts: all
+  become: true
+  tasks:
+    - name: Enbale CPU accounting
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/system.conf
+        regexp: '^DefaultCPUAccounting=.*$'
+        line: 'DefaultCPUAccounting=yes'
+      notify: Reload systemd
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+
+- name: Configure automatic updates
+  hosts: all
+  become: true
+  roles:
+    - hifis.unattended_upgrades
+  vars:
+    unattended_automatic_reboot_time: "02:00"
+    unattended_update_days: 1
+

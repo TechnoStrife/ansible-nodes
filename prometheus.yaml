@@ -1,0 +1,21 @@
+---
+- name: Setup core monitoring software
+  hosts: prometheus
+  roles:
+    # - prometheus.prometheus.blackbox_exporter
+
+    # https://github.com/prometheus-community/ansible/tree/main/roles/prometheus
+    - prometheus.prometheus.prometheus
+
+    - prometheus.prometheus.alertmanager
+  tags:
+    - prometheus
+
+- name: Deploy grafana
+  hosts: prometheus
+  roles:
+    # https://github.com/grafana/grafana-ansible-collection/tree/main/roles/grafana
+    - grafana.grafana.grafana
+  tags:
+    - grafana
+
