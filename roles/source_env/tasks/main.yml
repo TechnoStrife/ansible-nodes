@@ -1,0 +1,11 @@
+---
+- name: Get env
+  shell: ". ~/.profile && env"
+  changed_when: false
+  no_log: true
+  register: env_output
+
+- name: Set sourced_env
+  set_fact:
+    sourced_env: "{{ ('{' + env_output.stdout.split('\n') | select | map('regex_replace', '([^=]*)=(.*)', '\"\\1\": \"\\2\"') | join(',') + '}') | from_json }}"
+

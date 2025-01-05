@@ -14,12 +14,12 @@
 - name: Check local key
   local_action:
     module: stat
-    path: "./cysic-keys/{{ cysic_wallet }}.key"
+    path: "./keys-backup/cysic/{{ cysic_wallet }}.key"
   register: local_key
 
 - name: Copy local key
   copy:
-    src: "./cysic-keys/{{ cysic_wallet }}.key"
+    src: "./keys-backup/cysic{{ cysic_wallet }}.key"
     dest: "/root/.cysic/keys/{{ cysic_wallet }}.key"
   when: local_key.stat.exists
 
@@ -53,4 +53,4 @@
   ansible.builtin.fetch:
     src: "/root/.cysic/keys/{{ cysic_wallet }}.key"
     flat: true
-    dest: "./cysic-keys/"
+    dest: "./keys-backup/cysic"

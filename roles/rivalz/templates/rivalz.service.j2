@@ -4,7 +4,7 @@ After=network.target nss-lookup.target
 
 [Service]
 WorkingDirectory=/root/
-ExecStart=bash -c ". /root/.nvm/nvm.sh && rivalz run"
+ExecStart=bash -c ". /root/.nvm/nvm.sh && rivalz run 2>&1 | {{ log_guards.rivalz }}"
 Environment="HOME=/root/"
 Restart=on-failure
 LimitNPROC=10000

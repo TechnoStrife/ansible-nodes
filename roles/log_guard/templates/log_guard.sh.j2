@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+
+{# {% for item in line_rules %}
+flag_{{ item.name }}=0
+{% endfor %}
+#}
+
+
+while read line; do
+    echo "$line"
+
+    {% for item in line_rules -%}
+
+    if [[ "$line" == *"{{ item.match }}"* ]]; then
+        echo "log_guard: Rule {{ item.name }} matched"
+        {% if item.restart -%}
+        systemctl restart {{ service_name }}
+        {% elif item.shell -%}
+        {{ item.shell }}
+        {%- endif %}
+    fi
+
+    {%- endfor %}
+
+done
+

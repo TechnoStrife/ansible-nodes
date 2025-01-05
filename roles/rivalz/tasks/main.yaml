@@ -2,6 +2,16 @@
 - name: Install rivalz cli
   ansible.builtin.include_tasks: install.yaml
 
+- name: Create log guard
+  include_role:
+    name: log_guard
+  vars:
+    service_name: rivalz
+    line_rules:
+      - name: connection_lost
+        match: "Transport connection is closed. With error:"
+        restart: true
+
 - name: Update systemd service config
   ansible.builtin.template:
     src: rivalz.service.j2

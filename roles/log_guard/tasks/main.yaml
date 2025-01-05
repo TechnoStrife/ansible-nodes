@@ -1,0 +1,20 @@
+---
+- name: Set guard path
+  set_fact:
+    log_guards: "{{ log_guards | default({}) | combine({service_name: '/root/log_guards/' + service_name + '_guard.sh'})}}"
+
+- name: Create log guard directory
+  ansible.builtin.file:
+    path: "/root/log_guards/"
+    owner: root
+    group: root
+    mode: '0777'
+    state: directory
+
+- name: Create log guard script
+  ansible.builtin.template:
+    src: log_guard.sh.j2
+    dest: "/root/log_guards/{{ service_name }}_guard.sh"
+    owner: root
+    group: root
+    mode: '0755'

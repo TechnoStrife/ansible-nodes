@@ -1,0 +1,149 @@
+---
+
+- name: test go
+  shell: go version
+  changed_when: false
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 #One day
+
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - make
+    - git
+    - gcc
+    - curl
+    - jq
+    - pkg-config
+    - openssl
+    - libssl-dev
+    - lz4
+    - build-essential
+    - htop
+    - zip
+    - unzip
+    - rsync
+
+- name: Get fiamma source code
+  ansible.builtin.git:
+    repo: 'https://github.com/fiamma-chain/fiamma.git'
+    dest: ~/fiamma-source
+    version: "{{ fiamma_version | default('v1.0.0') }}"
+
+- name: Run fiamma 'make install'
+  community.general.make:
+    chdir: ~/fiamma-source
+    target: install
+
+- name: Check installed version
+  shell: fiammad version
+  changed_when: false
+
+- name: Install fcli
+  ansible.builtin.get_url:
+    url: https://github.com/fiamma-chain/fiamma-committee-cli/releases/download/v0.1.1/fcli-linux-x86-64
+    dest: /usr/local/bin/fcli
+    mode: '0755'
+
+- name: Init fiamma
+  shell: "fiammad init {{ MONIKER }} --chain-id {{ CHAIN_ID }}"
+  args:
+    creates: ~/.fiamma
+
+- name: Get genesis file
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/fiamma-chain/networks/main/fiamma-testnet-1/genesis.json
+    dest: ~/.fiamma/config/genesis.json
+    mode: '0666'
+
+- name: Get address book
+  ansible.builtin.get_url:
+    url: https://server-5.itrocket.net/testnet/fiamma/addrbook.json
+    dest: ~/.fiamma/config/addrbook.json
+    mode: '0666'
+
+- name: Set seeds, indexer, prometheus
+  ansible.builtin.lineinfile:
+    path: ~/.fiamma/config/config.toml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - regexp: '^seeds '
+      line: "seeds = \"{{ SEEDS | default('5d6828849a45cf027e035593d8790bc62aca9cef@18.182.20.173:26656,526d13f3ce3e0b56fa3ac26a48f231e559d4d60c@35.73.202.182:26656' )}}\""
+    - regexp: '^persistent_peers '
+      line: "persistent_peers = \"{{ PEERS | default('5d6828849a45cf027e035593d8790bc62aca9cef@18.182.20.173:26656,526d13f3ce3e0b56fa3ac26a48f231e559d4d60c@35.73.202.182:26656') }}\""
+    - regexp: '^indexer '
+      line: 'indexer = "null"'
+    - regexp: '^prometheus '
+      line: 'prometheus = true'
+
+- name: Set gas prices, pruning, snapshot interval
+  ansible.builtin.lineinfile:
+    path: ~/.fiamma/config/app.toml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - regexp: '^minimum-gas-prices'
+      line: "minimum-gas-prices = \"{{ MINIMUM_GAS_PRICES | default('0.00001ufia') }}\""
+    - regexp: '^pruning '
+      line: 'pruning = "custom"'
+    - regexp: '^pruning-keep-recent '
+      line: 'pruning-keep-recent = "100"'
+    - regexp: '^pruning-keep-every '
+      line: 'pruning-keep-every = "0"'
+    - regexp: '^pruning-interval '
+      line: 'pruning-interval = "10"'
+    - regexp: '^snapshot-interval '
+      line: 'snapshot-interval = 0'
+
+- name: Get fiammad path
+  command: which fiammad
+  register: fiammad_path
+  changed_when: false
+
+- name: Update systemd service config
+  ansible.builtin.template:
+    src: fiamma.service.j2
+    dest: /etc/systemd/system/fiamma.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd to recognize the service
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Stop Fiamma service
+  ansible.builtin.systemd:
+    name: fiamma
+    enabled: true
+    state: stopped
+
+- name: Remove database
+  file:
+    path: ~/.fiamma/data/application.db
+    state: absent
+
+- name: Get snapshot
+  shell: |
+    set -e
+    cp $HOME/.fiamma/data/priv_validator_state.json $HOME/.fiamma/priv_validator_state.json.backup
+    fiammad tendermint unsafe-reset-all --home $HOME/.fiamma --keep-addr-book
+    LATEST_SNAPSHOT=$(curl -s https://server-1.stavr.tech/Testnet/Fiamma/ | grep -oE 'fiamma-snap-[0-9]+\.tar\.lz4' | while read SNAPSHOT; do HEIGHT=$(curl -s "https://server-1.stavr.tech/Testnet/Fiamma/${SNAPSHOT%.tar.lz4}-info.txt" | awk '/Block height:/ {print $3}'); echo "$SNAPSHOT $HEIGHT"; done | sort -k2 -nr | head -n 1 | awk '{print $1}')
+    curl -o - -L https://server-1.stavr.tech/Testnet/Fiamma/$LATEST_SNAPSHOT | lz4 -c -d - | tar -x -C $HOME/.fiamma
+    mv $HOME/.fiamma/priv_validator_state.json.backup $HOME/.fiamma/data/priv_validator_state.json
+  args:
+    executable: /bin/bash
+
+- name: Enable and start Fiamma service
+  ansible.builtin.systemd:
+    name: fiamma
+    enabled: true
+    state: restarted
+

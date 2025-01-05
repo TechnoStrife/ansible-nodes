@@ -1,0 +1,16 @@
+---
+
+# - name: Set up go
+#   hosts: fiamma
+#   roles:
+#     - role: fubarhouse.golang # https://github.com/fubarhouse/ansible-role-golang
+#       go_version: 1.23.3
+#       golang_shell_profile: ~/.profile
+
+- name: Set up fiammad
+  hosts: fiamma
+  roles:
+    - source_env
+    - role: fiammad
+      environment: "{{ sourced_env }}"
+
