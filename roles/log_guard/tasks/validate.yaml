@@ -1,0 +1,17 @@
+---
+- name: Load argument specifications
+  include_vars:
+    file: "argument_spec.yml"
+    name: arg_spec
+
+- name: Validate arguments
+  validate_argument_spec:
+    argument_spec: "{{ arg_spec.role_args }}"
+    provided_arguments:
+      service_name: "{{ service_name }}"
+      line_rules: "{{ line_rules }}"
+  register: validation_output
+
+- name: Display validation results
+  debug:
+    msg: "{{ validation_output.msg }}"

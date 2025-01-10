@@ -1,4 +1,7 @@
 ---
+# - name: Validate role arguments
+#   include_tasks: validate.yaml
+
 - name: Set guard path
   set_fact:
     log_guards: "{{ log_guards | default({}) | combine({service_name: '/root/log_guards/' + service_name + '_guard.sh'})}}"

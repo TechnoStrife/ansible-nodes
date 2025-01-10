@@ -1,0 +1,27 @@
+role_args:
+  service_name:
+    type: str
+    required: true
+    description: "Name of the systemd service"
+  line_rules:
+    type: str
+    required: true
+    description: "List of rules"
+    elements:
+      type: dict
+      required: true
+      options:
+        name:
+          type: str
+          required: true
+          description: "Name of the rule, no spaces allowed."
+        match:
+          type: str
+          required: true
+          description: "Exact line to check for"
+        restart:
+          type: bool
+          required: true
+          choices: [true]
+          description: "If true, then the service should be restart when the rule matches"
+
