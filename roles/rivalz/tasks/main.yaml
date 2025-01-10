@@ -11,6 +11,9 @@
       - name: connection_lost
         match: "Transport connection is closed. With error:"
         restart: true
+      - name: pinging_master_node
+        match: "Pinging master node failed with error:"
+        restart: true
 
 - name: Update systemd service config
   ansible.builtin.template:
