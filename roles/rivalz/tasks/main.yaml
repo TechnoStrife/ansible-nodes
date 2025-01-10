@@ -12,7 +12,10 @@
         match: "Transport connection is closed. With error:"
         restart: true
       - name: pinging_master_node
-        match: "Pinging master node failed with error:"
+        match: "Pinging master node failed with error: Request failed with status code"
+        restart: true
+      - name: get_node_info
+        match: "Get node info failed: Request failed with status code"
         restart: true
 
 - name: Update systemd service config
@@ -27,7 +30,7 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
-- name: Enable and start Rivalz service
+- name: Enable and stop Rivalz service
   ansible.builtin.systemd:
     name: rivalz
     enabled: true
