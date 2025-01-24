@@ -1,0 +1,26 @@
+---
+- name: Uninstall npm packages
+  shell: ". ~/.nvm/nvm.sh && npm uninstall -g rivalz-node-cli"
+  args:
+    executable: /bin/bash
+    removes: "{{ npm_prefix.stdout }}/lib/node_modules/rivalz-node-cli/"
+
+- name: Remove log guard
+  ansible.builtin.file:
+    path: ~/log_guards/rivalz_guard.sh
+    state: absent
+
+- name: Disable and stop Rivalz service
+  ansible.builtin.systemd:
+    name: rivalz
+    enabled: false
+    state: stopped
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Remove systemd service config
+  ansible.builtin.file:
+    path: /etc/systemd/system/rivalz.service
+    state: absent

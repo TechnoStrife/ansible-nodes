@@ -7,6 +7,7 @@ WorkingDirectory=/root/
 ExecStart=bash -c ". /root/.nvm/nvm.sh && rivalz run 2>&1 | {{ log_guards.rivalz }}"
 Environment="HOME=/root/"
 Restart=on-failure
+RestartSec=30
 LimitNPROC=10000
 
 [Install]

@@ -1,0 +1,5 @@
+---
+- name: Uninstall rivalz
+  hosts: nodes
+  roles:
+    - rivalz_rm
