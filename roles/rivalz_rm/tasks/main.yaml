@@ -1,4 +1,11 @@
 ---
+- name: Discover npm binaries directory
+  shell: ". ~/.nvm/nvm.sh && nvm exec --silent default npm config get prefix"
+  args:
+    executable: /bin/bash
+  register: npm_prefix
+  changed_when: false
+
 - name: Uninstall npm packages
   shell: ". ~/.nvm/nvm.sh && npm uninstall -g rivalz-node-cli"
   args:
